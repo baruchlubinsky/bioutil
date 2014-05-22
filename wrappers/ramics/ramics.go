@@ -16,7 +16,7 @@ git clone git@github.com:SANBIHIV/ramics-final.git
 cd ramics-final
 git checkout with-poi-for-seq2res
 autoreconf --install
-./configure
+./configure CXXFLAGS='-O4'
 make
 `
 
@@ -40,6 +40,7 @@ func install(path string) {
   scriptFile, _ := os.Create("install-ramics.sh")
   scriptFile.Chmod(8660)
   t.Execute(scriptFile, path)
+  scriptFile.Close()
   cmd := exec.Command("./install-ramics.sh")
   err := cmd.Run()
   if err != nil {
