@@ -1,7 +1,7 @@
 package ramics
 
 import (
-  //"io"
+  "io"
   "os"
   //"io/ioutil"
   "os/exec"
@@ -51,6 +51,14 @@ func install(path string) {
 
 func Run(arg ...string) (*exec.Cmd, error) {
   cmd := exec.Command(exe, arg...)
+  err := cmd.Start()
+  return cmd, err
+}
+
+func RunWithOutput(output *io.Writer, arg ...string) (*exec.Cmd, error) {
+  cmd := exec.Command(exe, arg...)
+  cmd.Stdout = *output
+  cmd.Stderr = *output
   err := cmd.Start()
   return cmd, err
 }
