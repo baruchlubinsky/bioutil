@@ -12,13 +12,13 @@ func ReverseCompliment(sequence []byte) []byte {
 	for i, base := range sequence {
 		switch base {
 		case a, A:
-			result[n-i-1] = byte('T')
+			result[n-i-1] = T
 		case t, T:
-			result[n-i-1] = byte('A')
+			result[n-i-1] = A
 		case g, G:
-			result[n-i-1] = byte('C')
+			result[n-i-1] = C
 		case c, C:
-			result[n-i-1] = byte('G')
+			result[n-i-1] = G
 		default:
 			result[n-i-1] = base
 		}
