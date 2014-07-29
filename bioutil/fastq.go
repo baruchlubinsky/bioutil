@@ -24,8 +24,11 @@ func ScanFastqFile(inputPath string, function SequenceFunc) ([]interface{}, erro
 	defer func() {
 		inputFile.Close()
 	}()
-	info, _ := inputFile.Stat()
-	results := make([]interface{}, 0, info.Size()/400)
+	return ScanFastq(input, function)
+}
+
+func ScanFastq(input *bufio.Reader, function SequenceFunc) ([]interface{}, error) {
+	results := make([]interface{}, 0)
 	for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
 		seqLine, _ := input.ReadBytes('\n')
 		sepLine, _ := input.ReadBytes('\n')
