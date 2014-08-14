@@ -28,7 +28,7 @@ func (a *Alignment) Score() float64 {
 	return score
 }
 
-type AlignmentFunc func(alignment Alignment) (interface{}, error)
+type AlignmentFunc func(alignment *Alignment) (interface{}, error)
 
 func ScanFastmFile(inputPath string, function AlignmentFunc) ([]interface{}, error) {
 	inputFile, err := os.Open(inputPath)
@@ -43,7 +43,7 @@ func ScanFastmFile(inputPath string, function AlignmentFunc) ([]interface{}, err
 	results := make([]interface{}, 0, info.Size()/400)
 	for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
 		seqLine, _ := input.ReadBytes('\n')
-		result, err := function(Alignment{headLine, seqLine})
+		result, err := function(&Alignment{headLine, seqLine})
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +52,7 @@ func ScanFastmFile(inputPath string, function AlignmentFunc) ([]interface{}, err
 	return results, nil
 }
 
-type AlignmentIndexFunc func(alignment Alignment, index int) (interface{}, error)
+type AlignmentIndexFunc func(alignment *Alignment, index int) (interface{}, error)
 
 func ScanFastmFileIndex(inputPath string, function AlignmentIndexFunc) ([]interface{}, error) {
 	inputFile, err := os.Open(inputPath)
@@ -68,7 +68,7 @@ func ScanFastmFileIndex(inputPath string, function AlignmentIndexFunc) ([]interf
 	index := 0
 	for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
 		seqLine, _ := input.ReadBytes('\n')
-		result, err := function(Alignment{headLine, seqLine}, index)
+		result, err := function(&Alignment{headLine, seqLine}, index)
 		index++
 		if err != nil {
 			return nil, err
