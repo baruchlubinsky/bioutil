@@ -45,7 +45,7 @@ func ReverseComplimentFile(inputPath string, outputPath string) (err error) {
 		output.Flush()
 		outputFile.Close()
 	}()
-	_, err = ScanFastqFile(inputPath, func(read Read) (interface{}, error) {
+	_, err = ScanFastqFile(inputPath, func(read *Read) (interface{}, error) {
 		output.Write(read.HeadLine)
 		output.Write(ReverseCompliment(read.SeqLine[:len(read.SeqLine)-1])) // Remove trailing newline
 		output.WriteByte('\n')
