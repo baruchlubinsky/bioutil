@@ -15,7 +15,7 @@ cd {{.}}
 git clone https://github.com/xflouris/PEAR.git .
 ./autogen.sh
 ./configure
-make
+make 
 `
 
 var path = "/usr/local/etc/gobiotools/pear"
@@ -23,8 +23,14 @@ var path = "/usr/local/etc/gobiotools/pear"
 var exe string
 
 func init() {
-	if os.Getenv("BIOTOOLS_RAMICS") != "" {
-		path = os.Getenv("BIOTOOLS_RAMICS")
+	cmd := exec.Command("which", "pear")
+	err := cmd.Run()
+	if err == nil {
+		exe = "pear"
+		return
+	}
+	if os.Getenv("BIOTOOLS_PEAR") != "" {
+		path = os.Getenv("BIOTOOLS_PEAR")
 	}
 	exe = path + "/pear"
 	_, err := os.Stat(exe)

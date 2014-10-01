@@ -17,7 +17,7 @@ cd ramics-final
 git checkout with-poi-for-seq2res
 autoreconf --install
 ./configure CXXFLAGS='-O4'
-make
+make 
 `
 
 var path = "/usr/local/etc/gobiotools/ramics"
@@ -25,6 +25,12 @@ var path = "/usr/local/etc/gobiotools/ramics"
 var exe string
 
 func init()  {
+  cmd := exec.Command("which", "ramics")
+  err := cmd.Run()
+  if err == nil {
+    exe = "ramics"
+    return
+  }
   if os.Getenv("BIOTOOLS_RAMICS") != "" {
     path = os.Getenv("BIOTOOLS_RAMICS")
   }
