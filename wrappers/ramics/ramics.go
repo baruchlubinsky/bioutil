@@ -35,7 +35,7 @@ func init()  {
     path = os.Getenv("BIOTOOLS_RAMICS")
   }
   exe = path + "/ramics-final/ramics"
-  _, err := os.Stat(exe)
+  _, err = os.Stat(exe)
   if err != nil {
     install(path)
   }
