@@ -52,6 +52,23 @@ func ScanFastmFile(inputPath string, function AlignmentFunc) ([]interface{}, err
 	return results, nil
 }
 
+func ScanFastmFileChan(inputPath string, out chan Alignment) (error) {
+	inputFile, err := os.Open(inputPath)
+	if err != nil {
+		return err
+	}
+	input := bufio.NewReader(inputFile)
+	defer func() {
+		inputFile.Close()
+	}()
+	for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
+		seqLine, _ := input.ReadBytes('\n')
+		out <- Alignment{headLine, seqLine}
+	}
+	close(out)
+	return nil
+}
+
 type AlignmentIndexFunc func(alignment *Alignment, index int) (interface{}, error)
 
 func ScanFastmFileIndex(inputPath string, function AlignmentIndexFunc) ([]interface{}, error) {
