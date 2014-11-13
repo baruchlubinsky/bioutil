@@ -44,6 +44,16 @@ func ScanFastq(input *bufio.Reader, function SequenceFunc) ([]interface{}, error
 	return results, nil
 }
 
+func ScanFastqChan(input *bufio.Reader, out chan Read) {
+	for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
+		seqLine, _ := input.ReadBytes('\n')
+		sepLine, _ := input.ReadBytes('\n')
+		qualLine, _ := input.ReadBytes('\n')
+		out <- Read{headLine, seqLine, sepLine, qualLine}
+	}
+	close(out)
+}
+
 func ScanFastqFilterFile(inputPath string, filter SequenceFilterFunc, function SequenceFunc) ([]interface{}, error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
