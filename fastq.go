@@ -17,6 +17,12 @@ type SequenceFunc func(read *Read) (interface{}, error)
 
 type SequenceFilterFunc func(read *Read) bool
 
+func (a *Read) Data() []byte {
+	temp := append(a.HeadLine, a.SeqLine...)
+	temp = append(temp, a.SepLine...)
+	return append(temp, a.QualLine...)
+}
+
 func ScanFastqFile(inputPath string, function SequenceFunc) ([]interface{}, error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
@@ -52,6 +58,25 @@ func ScanFastqChan(input *bufio.Reader, out chan Read) {
 		out <- Read{headLine, seqLine, sepLine, qualLine}
 	}
 	close(out)
+}
+
+func ScanFastqFileChan(inputPath string, out chan Read) error {
+	inputFile, err := os.Open(inputPath)
+	if err != nil {
+		return err
+	}
+	input := bufio.NewReader(inputFile)
+	go func() {
+		for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
+			seqLine, _ := input.ReadBytes('\n')
+			sepLine, _ := input.ReadBytes('\n')
+			qualLine, _ := input.ReadBytes('\n')
+			out <- Read{headLine, seqLine, sepLine, qualLine}
+		}
+		close(out)
+		inputFile.Close()
+	}()
+	return nil
 }
 
 func ScanFastqFilterFile(inputPath string, filter SequenceFilterFunc, function SequenceFunc) ([]interface{}, error) {

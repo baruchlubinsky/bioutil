@@ -2,6 +2,7 @@ package bioutil
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -20,12 +21,26 @@ func init() {
 }
 
 func (a *Alignment) Score() float64 {
-	s := AlignmentScoreRe.FindStringSubmatch(string(a.HeadLine))[1]
-	score, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return 0.0
+	match := AlignmentScoreRe.FindStringSubmatch(string(a.HeadLine))
+	if len(match) > 0 {
+		s := match[1]
+		score, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return 0.0
+		}
+		return score
+	} else {
+		return -1.0
 	}
-	return score
+
+}
+
+func (a *Alignment) String() string {
+	return fmt.Sprintf("%s\n%s\n", a.HeadLine, a.SeqLine)
+}
+
+func (a *Alignment) Data() []byte {
+	return append(a.HeadLine, a.SeqLine...)
 }
 
 type AlignmentFunc func(alignment *Alignment) (interface{}, error)
@@ -52,20 +67,20 @@ func ScanFastmFile(inputPath string, function AlignmentFunc) ([]interface{}, err
 	return results, nil
 }
 
-func ScanFastmFileChan(inputPath string, out chan Alignment) (error) {
+func ScanFastmFileChan(inputPath string, out chan Alignment) error {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return err
 	}
 	input := bufio.NewReader(inputFile)
-	defer func() {
+	go func() {
+		for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
+			seqLine, _ := input.ReadBytes('\n')
+			out <- Alignment{headLine, seqLine}
+		}
+		close(out)
 		inputFile.Close()
 	}()
-	for headLine, err := input.ReadBytes('\n'); err != io.EOF; headLine, err = input.ReadBytes('\n') {
-		seqLine, _ := input.ReadBytes('\n')
-		out <- Alignment{headLine, seqLine}
-	}
-	close(out)
 	return nil
 }
 
