@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"hyraxbio.kilnhg.com/golang/bioutil.git"
-	"hyraxbio.kilnhg.com/golang/bioutil.git/align"
-	"hyraxbio.kilnhg.com/golang/seq2res.git/data"
+	"code.hyraxbio.co.za/bioutil"
+	"code.hyraxbio.co.za/bioutil/align"
+	"code.hyraxbio.co.za/seq2res/data"
 	"os"
 	"strings"
 )

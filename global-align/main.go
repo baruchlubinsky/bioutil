@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"hyraxbio.kilnhg.com/golang/bioutil.git/align"
+	"code.hyraxbio.co.za/bioutil/align"
 
 	"log"
 	"os"
