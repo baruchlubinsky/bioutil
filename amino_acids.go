@@ -1,8 +1,17 @@
 package bioutil
 
+import(
+	"sort"
+	"strings"
+)
+
+const AMINO_ACIDS string = "ARNDCEQGHILKMFPSTWYV"
+
 type Nucleotide byte
 type Codon [3]Nucleotide
-type AminoAcid byte
+// May contain multiple characters, eg. iKL
+type AminoAcid string
+type AminoAcids []AminoAcid
 
 func (codon *Codon) AminoAcid() AminoAcid {
 	switch codon[0] {
@@ -11,30 +20,30 @@ func (codon *Codon) AminoAcid() AminoAcid {
 		case 't', 'T':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'F' // TTT TTC
+				return AminoAcid("F") // TTT TTC
 			case 'a', 'A', 'g', 'G':
-				return 'L' // TTA TTG
+				return AminoAcid("L") // TTA TTG
 			}
 		case 'c', 'C':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'S' // TCT TCC TCA TCG
+				return AminoAcid("S") // TCT TCC TCA TCG
 			}
 		case 'a', 'A':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'Y' // TAT TAC
+				return AminoAcid("Y") // TAT TAC
 			case 'a', 'A', 'g', 'G':
-				return '*' // TAA TAG
+				return AminoAcid("*") // TAA TAG
 			}
 		case 'g', 'G':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'C' // TGT TGC
+				return AminoAcid("C") // TGT TGC
 			case 'a', 'A':
-				return '*' // TGA
+				return AminoAcid("*") // TGA
 			case 'g', 'G':
-				return 'W' // TGG
+				return AminoAcid("W") // TGG
 			}
 		}
 	case 'c', 'C':
@@ -42,24 +51,24 @@ func (codon *Codon) AminoAcid() AminoAcid {
 		case 't', 'T':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'L' // CTT CTC CTA CTG
+				return AminoAcid("L") // CTT CTC CTA CTG
 			}
 		case 'c', 'C':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'P' // CCT CCC CCA CCG
+				return AminoAcid("P") // CCT CCC CCA CCG
 			}
 		case 'a', 'A':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'H' // CAT CAC
+				return AminoAcid("H") // CAT CAC
 			case 'a', 'A', 'g', 'G':
-				return 'Q' // CAA CAG
+				return AminoAcid("Q") // CAA CAG
 			}
 		case 'g', 'G':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'R' // CGT CGC CGA CGG
+				return AminoAcid("R") // CGT CGC CGA CGG
 			}
 		}
 	case 'a', 'A':
@@ -67,28 +76,28 @@ func (codon *Codon) AminoAcid() AminoAcid {
 		case 't', 'T':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A':
-				return 'I' //ATT ATC ATA
+				return AminoAcid("I") //ATT ATC ATA
 			case 'g', 'G':
-				return 'M' // ATG
+				return AminoAcid("M") // ATG
 			}
 		case 'c', 'C':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'T' // ACT ACC ACA ACG
+				return AminoAcid("T") // ACT ACC ACA ACG
 			}
 		case 'a', 'A':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'N' // AAT AAC
+				return AminoAcid("N") // AAT AAC
 			case 'a', 'A', 'g', 'G':
-				return 'K' // AAA AAG
+				return AminoAcid("K") // AAA AAG
 			}
 		case 'g', 'G':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'S' // AGT AGC
+				return AminoAcid("S") // AGT AGC
 			case 'a', 'A', 'g', 'G':
-				return 'R' // AGA AGG
+				return AminoAcid("R") // AGA AGG
 			}
 		}
 	case 'g', 'G':
@@ -96,35 +105,71 @@ func (codon *Codon) AminoAcid() AminoAcid {
 		case 't', 'T':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'V' // GTT GTC GTA GTG
+				return AminoAcid("V") // GTT GTC GTA GTG
 			}
 		case 'c', 'C':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'A' // GCT GCC GCA GCG
+				return AminoAcid("A") // GCT GCC GCA GCG
 			}
 		case 'a', 'A':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C':
-				return 'D' // GAT GAC
+				return AminoAcid("D") // GAT GAC
 			case 'a', 'A', 'g', 'G':
-				return 'E' // GAA GAG
+				return AminoAcid("E") // GAA GAG
 			}
 		case 'g', 'G':
 			switch codon[2] {
 			case 't', 'T', 'c', 'C', 'a', 'A', 'g', 'G':
-				return 'G' // GGT GGC GGA GGG
+				return AminoAcid("G") // GGT GGC GGA GGG
 			}
 		}
 	}
-	return 'X'
+	return AminoAcid("X")
 }
 
-func CodonsToAminoAcids(sequence []Nucleotide) []AminoAcid {
-	result := make([]AminoAcid, len(sequence)/3)
+func CodonsToAminoAcids(sequence []Nucleotide) AminoAcids {
+	result := make(AminoAcids, len(sequence)/3)
 	for i, _ := range result {
 		codon := Codon{sequence[i*3], sequence[i*3+1], sequence[i*3+2]}
 		result[i] = codon.AminoAcid()
 	}
 	return result
+}
+
+// Returns the code for an ambigious amino acid.
+func AminoAcidCode(aa string) string {
+	aa = strings.ToUpper(aa)
+	if len(aa) == 1 {
+		return aa
+	}
+	letters := sort.StringSlice{aa[:]}
+	letters.Sort()
+	sorted := strings.Join([]string(letters), "")
+	switch sorted {
+	case "AG":
+		return "R"
+	case "CT":
+		return "Y"
+	case "AC":
+		return "M"
+	case "GT":
+		return "K"
+	case "CG":
+		return "S"
+	case "AT":
+		return "W"
+	case "ACT":
+		return "H"
+	case "CGT":
+		return "B"
+	case "ACG":
+		return "V"
+	case "AGT":
+		return "D"
+	case "ACGT":
+		return "N"
+	}
+	return aa
 }
