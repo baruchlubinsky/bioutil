@@ -14,34 +14,73 @@ func init() {
 
 type MutationFactory struct {
 	Sequence AminoAcids
-	Regions []GeneRegion
+	Regions []*GeneRegion
 }
 
-func (factory MutationFactory) RegionFor(position int) *GeneRegion {
+func (factory *MutationFactory) RegionFor(position int) *GeneRegion {
 	for i, region := range factory.Regions {
 		if position >= region.startPosition && position <= region.endPosition {
-			return &factory.Regions[i]
+			return factory.Regions[i]
 		}
 	}
 	return nil
 }
 
 // Create a Mutation at the specified position. If the position is within a region for this gene, that is assigned to the Mutation.
-func (factory MutationFactory) Create(position int) Mutation {
+func (factory *MutationFactory) Create(position int) Mutation {
+	var res Mutation
+	if factory.Sequence == nil {
+		res = Mutation{position: position}
+	} else {
+		res = Mutation {
+			sequence: &factory.Sequence, 
+			position: position,
+		}
+	}
+	region := factory.RegionFor(position)
+	if region != nil {
+		res.geneRegionPosition = position - region.startPosition
+		res.geneRegion = region
+	} 
+	res.WildType()
+	return res
+}
+
+// Create a Mutation at the specified position. If the position is within a region for this gene, that is assigned to the Mutation.
+func (factory *MutationFactory) CreateWithValue(position int, value AminoAcid) Mutation {
 	res := Mutation {
 			sequence: &factory.Sequence, 
 			position: position,
+			value: value,
 		}
 	region := factory.RegionFor(position)
 	if region != nil {
 		res.geneRegionPosition = position - region.startPosition
 		res.geneRegion = region
 	} 
+	res.WildType()
+	return res
+}
+
+func (factory *MutationFactory) CreateWithValueInRegion(position int, value AminoAcid, region *GeneRegion) Mutation {
+	res := factory.CreateInRegion(position, region)
+	res.WildType()
+	return res.WithValue(value)
+}
+
+func (factory *MutationFactory) CreateInRegion(position int, region *GeneRegion) Mutation {
+	res := Mutation{
+		sequence: &factory.Sequence,
+		geneRegionPosition: position,
+		position: position + region.startPosition,
+		geneRegion: region,
+	}
+	res.WildType()
 	return res
 }
 
 // Convert a string (such as A287K) to a Mutation. This is the inverse of Mutation.String().
-func (factory MutationFactory) Parse(s string) Mutation {
+func (factory *MutationFactory) Parse(s string) Mutation {
 	matches := MutationRegex.FindAllSubmatch([]byte(s), 1)
 	var res Mutation
 	if matches != nil {
@@ -51,6 +90,8 @@ func (factory MutationFactory) Parse(s string) Mutation {
 		res.value = AminoAcid(matches[0][fields-1])
 		if fields == 4 {
 			res.wildType = AminoAcid(matches[0][fields-3])
+		} else {
+			res.WildType()
 		}
 	}
 	return res
@@ -59,7 +100,8 @@ func (factory MutationFactory) Parse(s string) Mutation {
 // Convert a string to a slice of Mutations.
 // A100LMN becomes {A100L, A100M, A100N}
 // A100AiLP becomes {A100A, A100iLP}
-func (factory MutationFactory) ParseList(s string) Mutations {
+// For comma separated data use dnaio.FastmAlignment
+func (factory *MutationFactory) ParseList(s string) Mutations {
 	matches := MutationListRegex.FindAllSubmatch([]byte(s), -1)
 	if matches != nil {
 		res := make(Mutations, 0, len(matches))
@@ -88,24 +130,25 @@ func (factory MutationFactory) ParseList(s string) Mutations {
 }
 
 // Create a Mutation within a specified gene region. "K65R", RT
-func (factory MutationFactory) ParseInRegion(s string, region *GeneRegion) Mutation {
+func (factory *MutationFactory) ParseInRegion(s string, region *GeneRegion) Mutation {
 	matches := MutationRegex.FindAllSubmatch([]byte(s), 1)
-	res := factory.Create(0)
+	var res Mutation
 	if matches != nil {
 		fields := len(matches[0])
-		res.geneRegionPosition, _ = strconv.Atoi(string(matches[0][fields-2]))
+		regionPos, _ := strconv.Atoi(string(matches[0][fields-2]))
+		res = factory.CreateInRegion(regionPos, region)
 		res.value = AminoAcid(matches[0][fields-1])
 		if fields == 4 {
 			res.wildType = AminoAcid(matches[0][fields-3])
+		} else {
+			res.WildType()
 		}
-		res.geneRegion = region
-		res.position = res.geneRegionPosition + region.startPosition 
 	}
 	return res
 }
 
 // NewMutautionList in the specified region.
-func (factory MutationFactory) ParseListInRegion(s string, region *GeneRegion) Mutations {
+func (factory *MutationFactory) ParseListInRegion(s string, region *GeneRegion) Mutations {
 	matches := MutationListRegex.FindAllSubmatch([]byte(s), -1)
 	if matches != nil {
 		res := make(Mutations, 0, len(matches))
@@ -114,22 +157,18 @@ func (factory MutationFactory) ParseListInRegion(s string, region *GeneRegion) M
 			position, _ := strconv.Atoi(string(match[2]))
 			for i, m := range match[3] {
 				if m == 'i' {
-					newMutation := factory.Create(0)
-					newMutation.geneRegionPosition = position
-					newMutation.geneRegion = region
+					newMutation := factory.CreateInRegion(position, region)
 					newMutation.wildType = wildType
 					newMutation.value = AminoAcid(match[3][i:])
-					newMutation.position = newMutation.geneRegionPosition + region.startPosition
+					newMutation.WildType()
 					res = append(res, newMutation)
 					break
 				}
 				if m != 'X' {
-					newMutation := factory.Create(0)
-					newMutation.geneRegionPosition = position
-					newMutation.geneRegion = region
+					newMutation := factory.CreateInRegion(position, region)
 					newMutation.wildType = wildType
 					newMutation.value = AminoAcid(m)
-					newMutation.position = newMutation.geneRegionPosition + region.startPosition
+					newMutation.WildType()
 					res = append(res, newMutation)
 				}
 			}

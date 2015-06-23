@@ -32,7 +32,7 @@ func (m Mutation) Position() int {
 // If it has not been explicitly set, the wildtype from the reference sequence is returned.
 // If position is 0, throws a runtime index out-of-range error.
 func (m *Mutation) WildType() AminoAcid {
-	if m.wildType == "" {
+	if m.wildType == "" && m.sequence != nil {
 		index := m.Position() - 1
 		m.wildType = AminoAcid((*m.sequence)[index])
 	}
