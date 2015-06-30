@@ -24,6 +24,10 @@ func (a FastqRead) Sequence() []bioutil.Nucleotide {
 	return res
 }
 
+func (a FastqRead) RawSequence() []byte {
+	return a.sequence
+}
+
 // Returns a copy of the quality data, use QualityScore() where possible
 func (a FastqRead) Quality() []byte {
 	res := make([]byte, len(a.quality))

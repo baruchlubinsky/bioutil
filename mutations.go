@@ -2,6 +2,7 @@ package bioutil
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Represents a single mutation within Pol. Instances are immutable.
@@ -48,6 +49,7 @@ func (m Mutation) WithValue(v AminoAcid) Mutation {
 	return Mutation{
 		sequence: m.sequence,
 		geneRegion: m.geneRegion,
+		geneRegionPosition: m.geneRegionPosition,
 		wildType: m.wildType,
 		position: m.position,
 		value:    v,
@@ -69,8 +71,25 @@ func (m Mutation) RegionString() string {
 }
 
 // String representation of a Mutation.
-func (m *Mutation) String() string {
+func (m Mutation) String() string {
 	return fmt.Sprintf("%v%v%v", m.WildType(), m.Position(), m.Value())
+}
+
+func (a Mutations) RegionString() string {
+	s := make([]string, len(a))
+	for i, m := range a {
+		s[i] = m.RegionString()
+	}
+	return strings.Join(s, ", ")
+}
+
+
+func (a Mutations) String() string {
+	s := make([]string, len(a))
+	for i, m := range a {
+		s[i] = m.String()
+	}
+	return strings.Join(s, ", ")
 }
 
 // Sort interface

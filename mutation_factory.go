@@ -147,7 +147,7 @@ func (factory *MutationFactory) ParseInRegion(s string, region *GeneRegion) Muta
 	return res
 }
 
-// NewMutautionList in the specified region.
+// New Mutautions in the specified region.
 func (factory *MutationFactory) ParseListInRegion(s string, region *GeneRegion) Mutations {
 	matches := MutationListRegex.FindAllSubmatch([]byte(s), -1)
 	if matches != nil {
