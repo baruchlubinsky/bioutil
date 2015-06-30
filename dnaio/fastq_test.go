@@ -1,4 +1,4 @@
-package bioutil
+package dnaio
 
 import (
 	"bufio"
@@ -6,14 +6,15 @@ import (
 	. "github.com/onsi/gomega"
 	"io"
 	"testing"
+	"code.hyraxbio.co.za/bioutil"
 )
 
 func b(in string) []byte {
 	return []byte(in)
 }
 
-func testRead() Read {
-	return Read{b("Header"),
+func testRead() FastqRead {
+	return FastqRead{b("Header"),
 		b("ACTGACTGACTG"),
 		b("+"),
 		b("IIJJKKLLMMNN"),
@@ -28,12 +29,12 @@ func TestInputReading(t *testing.T) {
 	RegisterTestingT(t)
 	reader, writer := io.Pipe()
 	input := bufio.NewReader(reader)
-	c := make(chan Read)
+	c := make(chan bioutil.Read)
 	go ScanFastqChan(input, c)
 	writer.Write(testData())
 	read := <-c
-	seq := testRead().sequence
-	Ω(read.sequence).Should(Equal(seq))
+	seq := testRead().Sequence()
+	Ω(read.Sequence()).Should(Equal(seq))
 }
 
 func TestDataWriting(t *testing.T) {
@@ -46,7 +47,7 @@ func TestDataWriting(t *testing.T) {
 func TestTrimLeft(t *testing.T) {
 	RegisterTestingT(t)
 	read := testRead()
-	read.TrimLeft(2)
+	read = read.TrimLeft(2).(FastqRead)
 	Ω(read.sequence).Should(Equal(b("TGACTGACTG")))
 	Ω(read.quality).Should(Equal(b("JJKKLLMMNN")))
 }
@@ -54,7 +55,7 @@ func TestTrimLeft(t *testing.T) {
 func TestTrimRight(t *testing.T) {
 	RegisterTestingT(t)
 	read := testRead()
-	read.TrimRight(3)
+	read = read.TrimRight(3).(FastqRead)
 	Ω(read.sequence).Should(Equal(b("ACTGACTGA")))
 	Ω(read.quality).Should(Equal(b("IIJJKKLLM")))
 }
@@ -62,7 +63,7 @@ func TestTrimRight(t *testing.T) {
 func TestAppendHeader(t *testing.T) {
 	RegisterTestingT(t)
 	read := testRead()
-	read.AppendHeader("Test")
+	read = read.AppendHeader("Test").(FastqRead)
 	Ω(read.header).Should(Equal(b("Header\tTest")))
 }
 
@@ -77,6 +78,6 @@ func TestMutability(t *testing.T) {
 func TestTrimAndWrite(t *testing.T) {
 	RegisterTestingT(t)
 	read := testRead()
-	read.TrimLeft(2)
+	read = read.TrimLeft(2).(FastqRead)
 	Ω(read.Data()).Should(Equal(b("Header\nTGACTGACTG\n+\nJJKKLLMMNN\n")))
 }

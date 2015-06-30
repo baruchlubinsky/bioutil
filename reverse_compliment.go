@@ -1,10 +1,7 @@
 package bioutil
 
-import (
-	"bufio"
-	"os"
-)
-
+// Reverse compliment the sequence of nucleotides.
+// All characters are also made caps.
 func ReverseCompliment(sequence []byte) []byte {
 	n := len(sequence)
 	result := make([]byte, n)
@@ -33,27 +30,4 @@ func Reverse(sequence []byte) []byte {
 		result[n-i-1] = b
 	}
 	return result
-}
-
-func ReverseComplimentFile(inputPath string, outputPath string) (err error) {
-	outputFile, err := os.Create(outputPath)
-	if err != nil {
-		return
-	}
-	output := bufio.NewWriter(outputFile)
-	defer func() {
-		output.Flush()
-		outputFile.Close()
-	}()
-	inputChan, err := ScanFastqFile(inputPath)
-	if err != nil {
-		return err
-	}
-	for read := range inputChan {
-		read := read
-		read.sequence = ReverseCompliment(read.sequence)
-		read.quality = Reverse(read.quality)
-		output.Write(read.Data())
-	}
-	return nil
 }
